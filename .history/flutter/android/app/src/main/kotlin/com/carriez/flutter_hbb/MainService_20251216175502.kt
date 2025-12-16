@@ -367,42 +367,6 @@ class MainService : Service() {
         startActivity(intent)
     }
 
-    /**
-     * 尝试使用root权限获取MediaProjection权限
-     * 这样可以避免每次都弹出权限请求对话框
-     */
-    private fun tryRequestMediaProjectionWithRoot(): Boolean {
-        return try {
-            // 检查是否有root权限
-            if (!RootHelper.isDeviceRooted()) {
-                Log.w(logTag, "Device is not rooted")
-                return false
-            }
-            
-            // 检查su命令是否可用
-            if (!RootHelper.checkSuPermission()) {
-                Log.w(logTag, "Su permission not available")
-                return false
-            }
-            
-            // 使用root权限授予MediaProjection权限
-            val packageName = applicationContext.packageName
-            if (RootHelper.startScreenCaptureWithRoot(packageName)) {
-                Log.d(logTag, "Successfully granted media projection permission via root")
-                // 注意：即使通过root授予了权限，仍然需要通过正常流程创建MediaProjection
-                // 但此时不会显示权限对话框
-                requestMediaProjection()
-                return true
-            } else {
-                Log.w(logTag, "Failed to grant media projection permission via root")
-                return false
-            }
-        } catch (e: Exception) {
-            Log.e(logTag, "tryRequestMediaProjectionWithRoot error: ${e.message}")
-            false
-        }
-    }
-
     @SuppressLint("WrongConstant")
     private fun createSurface(): Surface? {
         return if (useVP9) {

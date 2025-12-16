@@ -89,14 +89,6 @@ class MainActivity : FlutterActivity() {
         startActivityForResult(intent, REQ_INVOKE_PERMISSION_ACTIVITY_MEDIA_PROJECTION)
     }
 
-    private fun requestMediaProjectionWithRoot() {
-        val intent = Intent(this, PermissionRequestTransparentActivity::class.java).apply {
-            action = ACT_REQUEST_MEDIA_PROJECTION
-            putExtra(EXT_USE_ROOT_MODE, true)
-        }
-        startActivityForResult(intent, REQ_INVOKE_PERMISSION_ACTIVITY_MEDIA_PROJECTION)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQ_INVOKE_PERMISSION_ACTIVITY_MEDIA_PROJECTION && resultCode == RES_FAILED) {
