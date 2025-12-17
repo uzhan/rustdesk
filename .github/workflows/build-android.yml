@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ feature/root-permission, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Add Android targets
+        run: |
+          rustup target add aarch64-linux-android armv7-linux-androideabi
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+      
+      - name: Install NDK
+        run: |
+          sdkmanager "ndk;25.1.8937393"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.1.8937393" >> $GITHUB_ENV
+      
+      - name: Build Rust libraries
+        run: |
+          cargo build --release --target aarch64-linux-android --features flutter
+          cargo build --release --target armv7-linux-androideabi --features flutter
+      
+      - name: Copy libraries to Flutter
+        run: |
+          mkdir -p flutter/android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p flutter/android/app/src/main/jniLibs/armeabi-v7a
+          cp target/aarch64-linux-android/release/librustdesk.so flutter/android/app/src/main/jniLibs/arm64-v8a/
+          cp target/armv7-linux-androideabi/release/librustdesk.so flutter/android/app/src/main/jniLibs/armeabi-v7a/
+      
+      - name: Build Flutter APK
+        working-directory: flutter
+        run: |
+          flutter pub get
+          flutter build apk --split-per-abi --release
+      
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rustdesk-android-apk
+          path: |
+            flutter/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            flutter/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
