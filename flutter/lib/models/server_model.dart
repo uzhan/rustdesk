@@ -450,7 +450,29 @@ class ServerModel with ChangeNotifier {
     _isStart = true;
     notifyListeners();
     parent.target?.ffiModel.updateEventListener(parent.target!.sessionId, "");
-    await parent.target?.invokeMethod("init_service");
+    
+    // Try to use root mode on Android if available
+    bool useRootMode = false;
+    if (isAndroid) {
+      try {
+        final hasRoot = await parent.target?.invokeMethod("check_root");
+        if (hasRoot == true) {
+          final hasSuPermission = await parent.target?.invokeMethod("check_su_permission");
+          if (hasSuPermission == true) {
+            useRootMode = true;
+          }
+        }
+      } catch (e) {
+        debugPrint("Failed to check root: $e");
+      }
+    }
+    
+    if (useRootMode) {
+      await parent.target?.invokeMethod("init_service_root");
+    } else {
+      await parent.target?.invokeMethod("init_service");
+    }
+    
     // ugly is here, because for desktop, below is useless
     await bind.mainStartService();
     updateClientState();
