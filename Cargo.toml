@@ -78,7 +78,7 @@ chrono = "0.4"
 cidr-utils = "0.5"
 libloading = "0.8"
 fon = "0.6"
-zip = "0.6"
+zip = { version = "0.6", default-features = false, features = ["deflate", "bzip2", "time"] }
 shutdown_hooks = "0.1"
 totp-rs = { version = "5.4", default-features = false, features = ["gen_secret", "otpauth"] }
 stunclient = "0.4"
